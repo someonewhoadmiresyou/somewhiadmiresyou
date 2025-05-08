@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Message</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* bg-gray-900 */
+            color: #d1d5db; /* text-gray-300 */
+            overflow: hidden; /* Prevent scrollbars */
+        }
+
+        /* Section styling */
+        .full-section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            text-align: center;
+            position: absolute;
+            width: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transform: translateY(20px) scale(0.98);
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out, visibility 0s linear 0.8s;
+        }
+
+        .full-section.active-section {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            visibility: visible;
+            pointer-events: auto;
+            animation: fadeInSection 1.2s ease-out forwards;
+        }
+        
+        .full-section.exiting-section {
+            opacity: 0;
+            transform: translateY(-20px) scale(0.98);
+            pointer-events: none;
+        }
+
+        @keyframes fadeInSection {
+            from { 
+                opacity: 0; 
+                transform: translateY(20px) scale(0.98); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+                visibility: visible;
+            }
+        }
+
+        /* Star styling */
+        .star {
+            position: absolute;
+            border-radius: 50%;
+            background-color: #e5e7eb; /* gray-200 */
+            box-shadow: 0 0 6px #e5e7eb, 0 0 12px #e5e7eb, 0 0 18px #dbeafe;
+            /* Base animations: pulseStar is applied by default */
+            animation-name: pulseStar;
+            animation-duration: 2s; /* Default pulse duration */
+            animation-timing-function: ease-in-out;
+            animation-iteration-count: infinite;
+            animation-direction: alternate;
+            pointer-events: none; 
+        }
+        .star-sm { width: 2px; height: 2px; animation-duration: 2.2s; }
+        .star-md { width: 3px; height: 3px; animation-duration: 1.8s; }
+        .star-lg { width: 4px; height: 4px; animation-duration: 1.5s; box-shadow: 0 0 8px #e5e7eb, 0 0 15px #e5e7eb, 0 0 25px #dbeafe; }
+
+        /* Twinkle animation for some stars - combined with pulse and drift */
+        .twinkle {
+            /* Will be combined with pulseStar and a drift animation in the HTML */
+            animation-name: pulseStar, twinkleStar; /* Add drift animation name in HTML style */
+            animation-timing-function: ease-in-out, linear, linear; /* Add linear for drift */
+            animation-iteration-count: infinite, infinite, infinite; /* Add infinite for drift */
+            animation-direction: alternate, alternate, alternate; /* Add alternate for drift */
+        }
+
+        @keyframes pulseStar {
+            0% { transform: scale(0.7) translate(0,0); } /* Ensure translate is part of base for drift override */
+            100% { transform: scale(1.1) translate(0,0); }
+        }
+        @keyframes twinkleStar {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* Star Drift Animations */
+        @keyframes drift-A {
+            0%, 100% { transform: translate(0vw, 0vh) scale(var(--star-scale, 1)); }
+            50% { transform: translate(1.5vw, 1vh) scale(var(--star-scale, 1)); }
+        }
+        @keyframes drift-B {
+            0%, 100% { transform: translate(0vw, 0vh) scale(var(--star-scale, 1)); }
+            50% { transform: translate(-1vw, 1.2vh) scale(var(--star-scale, 1)); }
+        }
+        @keyframes drift-C {
+            0%, 100% { transform: translate(0vw, 0vh) scale(var(--star-scale, 1)); }
+            50% { transform: translate(0.5vw, -1.5vh) scale(var(--star-scale, 1)); }
+        }
+
+
+        .bg-star-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: -1;
+        }
+        
+        /* Background stars will have their drift animations assigned inline or via specific classes if preferred */
+        .bg-star1 { top: 7%; left: 12%; --star-scale: 0.7; } 
+        .bg-star2 { top: 18%; left: 85%; --star-scale: 1.1; }
+        .bg-star3 { top: 28%; left: 22%; --star-scale: 0.8; } 
+        .bg-star4 { top: 33%; left: 70%; --star-scale: 0.7; }
+        .bg-star5 { top: 48%; left: 8%; --star-scale: 1.1; } 
+        .bg-star6 { top: 53%; left: 92%; --star-scale: 0.8; }
+        .bg-star7 { top: 68%; left: 30%; --star-scale: 0.7; } 
+        .bg-star8 { top: 73%; left: 65%; --star-scale: 1.1; }
+        .bg-star9 { top: 88%; left: 15%; --star-scale: 0.8; } 
+        .bg-star10 { top: 93%; left: 80%; --star-scale: 0.7; }
+        .bg-star11 { top: 50%; left: 50%; --star-scale: 1.1; } 
+        .bg-star12 { top: 2%; left: 40%; --star-scale: 0.8; }
+        .bg-star13 { top: 97%; left: 60%; --star-scale: 0.7; }
+
+
+        /* Section-specific stars (fade with section) - no drift for these */
+        .section-star { position: absolute; animation-delay: inherit; }
+        .s-star1 { top: 10%; left: 15%; } .s-star2 { top: 20%; left: 80%; } .s-star3 { top: 75%; left: 10%; }
+        .s-star4 { top: 85%; left: 90%; } .s-star5 { top: 40%; left: 45%; } .s-star6 { top: 60%; left: 55%; }
+        .s-star7 { top: 5%; left: 50%; }  .s-star8 { top: 95%; left: 50%; }
+
+        .main-text {
+            opacity: 0;
+            animation: fadeInText 1s ease-out 0.5s forwards;
+            line-height: 1.8; /* Increased line height for readability */
+        }
+        @keyframes fadeInText { to { opacity: 1; } }
+
+        /* Enhanced Spark Word Styling */
+        .spark-word {
+            color: #93c5fd; /* text-blue-300 */
+            font-weight: 600; /* semibold */
+            cursor: pointer;
+            display: inline-block; /* Needed for transform */
+            animation: pulseSparkWord 2s infinite ease-in-out; /* Increased duration for a more noticeable shine */
+            transition: transform 0.2s ease-out, text-shadow 0.2s ease-out;
+            position: relative; /* For pseudo-elements if needed, not used here yet */
+        }
+        .spark-word:hover {
+            transform: scale(1.15); /* Slightly more pronounced hover */
+            text-shadow: 0 0 8px #93c5fd, 0 0 15px #fff; /* Brighter hover glow */
+        }
+        .spark-word.clicked {
+            animation: sparkClickedAnimation 0.5s ease-out forwards;
+        }
+
+        @keyframes pulseSparkWord {
+            0%, 100% { 
+                transform: scale(1); 
+                opacity: 0.85;
+                text-shadow: 0 0 4px #60a5fa, 0 0 8px #60a5fa;
+            }
+            50% { 
+                transform: scale(1.1); 
+                opacity: 1; 
+                text-shadow: 0 0 8px #93c5fd, 0 0 15px #93c5fd, 0 0 25px rgba(255, 255, 255, 0.7); /* Enhanced shine */
+            }
+        }
+        @keyframes sparkClickedAnimation {
+            0% { transform: scale(1.15); text-shadow: 0 0 15px #fff, 0 0 25px #fff; color: #fff; }
+            100% { transform: scale(1); text-shadow: none; color: #93c5fd; }
+        }
+
+
+        .final-message {
+            font-size: 1.5rem; 
+            font-weight: 700; 
+            color: #93c5fd; 
+            animation: glowText 2s ease-in-out infinite alternate, fadeInText 1s ease-out 0.5s forwards;
+            line-height: 1.6;
+        }
+        @media (min-width: 768px) { .final-message { font-size: 2.25rem; } } /* md breakpoint */
+        @keyframes glowText {
+            from { text-shadow: 0 0 5px #60a5fa, 0 0 10px #60a5fa; }
+            to { text-shadow: 0 0 10px #93c5fd, 0 0 20px #93c5fd; }
+        }
+
+        .additional-message {
+            font-size: 1rem; /* text-base */
+            line-height: 1.75; /* leading-relaxed */
+            color: #9ca3af; /* text-gray-400 */
+            max-width: 600px; /* Limit width for readability */
+            margin-top: 1.5rem; /* mb-6 */
+            opacity: 0; /* For fade-in animation */
+            animation: fadeInText 1s ease-out 1s forwards; /* Delay to appear after main message */
+        }
+         @media (min-width: 768px) { .additional-message { font-size: 1.125rem; } } /* md:text-lg */
+
+
+        .hint-text {
+            position: absolute; bottom: 5%; left: 50%; transform: translateX(-50%);
+            font-size: 0.875rem; /* text-sm */
+            color: #6b7280; /* text-gray-500 */
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            pointer-events: none;
+        }
+        .hint-text.visible { opacity: 1; }
+
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-300">
+
+    <div class="bg-star-container">
+        <div class="star star-sm bg-star1 twinkle" style="animation-name: pulseStar, twinkleStar, drift-A; animation-duration: 2.5s, 3s, 70s; animation-delay: 0.1s, 0.1s, 0s;"></div>
+        <div class="star star-lg bg-star2" style="animation-name: pulseStar, drift-B; animation-duration: 1.8s, 80s; animation-delay: 0.2s, 2s;"></div>
+        <div class="star star-md bg-star3 twinkle" style="animation-name: pulseStar, twinkleStar, drift-C; animation-duration: 2s, 2.5s, 60s; animation-delay: 0.5s, 0.5s, 1s;"></div>
+        <div class="star star-sm bg-star4" style="animation-name: pulseStar, drift-A; animation-duration: 2.8s, 75s; animation-delay: 0s, 3s;"></div>
+        <div class="star star-lg bg-star5 twinkle" style="animation-name: pulseStar, twinkleStar, drift-B; animation-duration: 1.8s, 3.5s, 85s; animation-delay: 0.1s, 0.1s, 0.5s;"></div>
+        <div class="star star-md bg-star6" style="animation-name: pulseStar, drift-C; animation-duration: 2.2s, 65s; animation-delay: 0.3s, 2.5s;"></div>
+        <div class="star star-sm bg-star7 twinkle" style="animation-name: pulseStar, twinkleStar, drift-A; animation-duration: 3s, 2s, 90s; animation-delay: 0.6s, 0.6s, 1.5s;"></div>
+        <div class="star star-lg bg-star8" style="animation-name: pulseStar, drift-B; animation-duration: 1.6s, 70s; animation-delay: 0.1s, 3.5s;"></div>
+        <div class="star star-md bg-star9 twinkle" style="animation-name: pulseStar, twinkleStar, drift-C; animation-duration: 2.2s, 2.8s, 80s; animation-delay: 0.3s, 0.3s, 0s;"></div>
+        <div class="star star-sm bg-star10" style="animation-name: pulseStar, drift-A; animation-duration: 2.6s, 60s; animation-delay: 0.5s, 2s;"></div>
+        <div class="star star-lg bg-star11 twinkle" style="animation-name: pulseStar, twinkleStar, drift-B; animation-duration: 1.5s, 4s, 70s; animation-delay: 0s, 0s, 1s;"></div>
+        <div class="star star-sm bg-star12" style="animation-name: pulseStar, drift-C; animation-duration: 2.9s, 85s; animation-delay: 0.2s, 3s;"></div>
+        <div class="star star-md bg-star13 twinkle" style="animation-name: pulseStar, twinkleStar, drift-A; animation-duration: 2.8s, 2.2s, 75s; animation-delay: 0.8s, 0.8s, 0.5s;"></div>
+    </div>
+
+    <section id="intro" class="full-section">
+        <div class="star star-md section-star s-star1 twinkle" style="animation-delay: 0.2s, 0.5s;"></div>
+        <div class="star star-sm section-star s-star2" style="animation-delay: 0.5s;"></div>
+        <p class="text-xl md:text-2xl lg:text-3xl max-w-2xl main-text">
+            In the quiet <span class="spark-word" data-spark-id="intro-spark">expanse</span> of my thoughts...
+        </p>
+        <p class="hint-text" data-hint-for="intro-spark">Hint: Find the spark to continue...</p>
+    </section>
+
+    <section id="journey" class="full-section">
+        <div class="star star-lg section-star s-star3" style="animation-delay: 0.3s;"></div>
+        <div class="star star-md section-star s-star4 twinkle" style="animation-delay: 0.1s, 0.6s;"></div>
+        <p class="text-xl md:text-2xl lg:text-3xl max-w-2xl main-text">
+            ...a particular <span class="spark-word" data-spark-id="journey-spark">light</span> began to emerge, something I hadn't expected.
+        </p>
+        <p class="hint-text" data-hint-for="journey-spark">Hint: Find the light to continue...</p>
+    </section>
+
+    <section id="subject" class="full-section">
+        <div class="star star-sm section-star s-star5 twinkle" style="animation-delay: 0.4s, 0.3s;"></div>
+        <div class="star star-lg section-star s-star6" style="animation-delay: 0.6s;"></div>
+        <p class="text-xl md:text-2xl lg:text-3xl max-w-2xl main-text">
+            It's a connection I feel, a warmth that's distinct. <br>And it's <span class="spark-word" data-spark-id="subject-spark">Unmistakably</span> you.
+        </p>
+        <p class="hint-text" data-hint-for="subject-spark">Hint: Find what's unmistakable...</p>
+    </section>
+
+    <section id="reveal" class="full-section">
+        <div class="star star-md section-star s-star7" style="animation-delay: 0.1s;"></div>
+        <div class="star star-sm section-star s-star8 twinkle" style="animation-delay: 0.7s, 0.2s;"></div>
+        <p class="text-2xl md:text-3xl lg:text-4xl leading-relaxed max-w-3xl mb-4 main-text">
+            This is my quiet, genuine way of <span class="spark-word" data-spark-id="reveal-spark">saying</span>...
+        </p>
+        <p class="final-message mb-4">
+            I admire you deeply. <br>As the person you are, purely and simply.
+        </p>
+        <p class="text-lg md:text-xl lg:text-2xl mt-2 max-w-2xl main-text" style="animation-delay: 0.8s;"> 
+            It's an admiration that I've come to realize, and it's important for me to express it. <br>
+            (And yes, I think you're pretty amazing, <span class="font-semibold">[Name/Nickname - you can replace this]</span>)
+        </p>
+        <p class="additional-message">
+            I understand if this is unexpected, or if you think we can't be more. 
+            But I also believe there's no harm in seeing where a path might lead, even if it's just for a little while. 
+            If you're open to it, let's allow this spark a chance to glow. 
+            Get to know the real me, and then you can decide if it's something to nurture, 
+            or if it's best to let it gently fade. The choice will be yours, with no pressure, only honesty.
+        </p>
+        <p class="hint-text" data-hint-for="reveal-spark">Hint: What am I trying to do?</p>
+    </section>
+    
+    <section id="closing" class="full-section">
+        <p class="text-lg md:text-xl max-w-xl main-text">
+            Hoping this message finds its way, carrying the sincere admiration I feel.
+        </p>
+        <div class="star star-lg" style="top: 60%; left: 50%; transform: translate(-50%, -50%) scale(1.8); opacity: 0.8; animation-duration: 3s;"></div>
+        <p class="text-sm text-gray-500 mt-12 main-text" style="animation-delay: 0.4s;">(This is the end of the message)</p>
+    </section>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Correctly select all sections that are part of the sequence
+            const sections = Array.from(document.querySelectorAll('.full-section'));
+            // Select only spark words from the interactive sections
+            const sparkWords = document.querySelectorAll('#intro .spark-word, #journey .spark-word, #subject .spark-word, #reveal .spark-word');
+
+            let currentSectionIndex = 0;
+            let hintTimeout;
+
+            function showHint(sparkId) {
+                const hintElement = document.querySelector(`.hint-text[data-hint-for="${sparkId}"]`);
+                if (hintElement) {
+                    hintElement.classList.add('visible');
+                }
+            }
+
+            function hideHint(sparkId) {
+                const hintElement = document.querySelector(`.hint-text[data-hint-for="${sparkId}"]`);
+                if (hintElement) {
+                    hintElement.classList.remove('visible');
+                }
+                if (hintTimeout) {
+                    clearTimeout(hintTimeout);
+                }
+            }
+
+            function showSection(index) {
+                sections.forEach((section, i) => {
+                    section.classList.remove('active-section', 'exiting-section');
+                    if (i === index) {
+                        section.classList.add('active-section');
+                        
+                        const currentSparkWord = section.querySelector('.spark-word');
+                        if (currentSparkWord) { // If there's a spark word in the current section
+                            const sparkId = currentSparkWord.dataset.sparkId;
+                            hideHint(sparkId); 
+                            // Only set hint timeout if it's not the last INTERACTIVE section
+                            // The actual last section ('closing') has no spark word.
+                            if (index < sparkWords.length) { // sparkWords.length is the count of interactive sections
+                                hintTimeout = setTimeout(() => showHint(sparkId), 7000);
+                            }
+                        }
+                    }
+                });
+            }
+
+            function advanceToNextSection(event) {
+                const sparkId = event.target.dataset.sparkId;
+                hideHint(sparkId);
+                event.target.classList.add('clicked');
+                
+                // Remove listener to prevent multiple clicks
+                event.target.removeEventListener('click', advanceToNextSection);
+
+                const currentActiveSection = sections[currentSectionIndex];
+                if (currentActiveSection) {
+                    currentActiveSection.classList.add('exiting-section');
+                    currentActiveSection.classList.remove('active-section');
+                }
+
+                currentSectionIndex++;
+
+                if (currentSectionIndex < sections.length) { // Check if there's a next section in the defined sequence
+                    setTimeout(() => {
+                        showSection(currentSectionIndex);
+                        // If the new section has a spark word, re-attach listener
+                        const nextSparkWord = sections[currentSectionIndex].querySelector('.spark-word');
+                        if(nextSparkWord) { // This check is important
+                            nextSparkWord.addEventListener('click', advanceToNextSection);
+                        }
+                        event.target.classList.remove('clicked');
+                    }, 700); 
+                } else {
+                    // This case should ideally not be reached if the last section ('closing') has no spark word to advance from.
+                    // The sequence ends when 'reveal-spark' is clicked, advancing to 'closing'.
+                    console.log("End of interactive message sequence.");
+                    event.target.classList.remove('clicked'); 
+                }
+            }
+
+            // Initial setup for spark words
+            sparkWords.forEach(spark => {
+                 spark.addEventListener('click', advanceToNextSection);
+            });
+
+            // Initially show the first section
+            if (sections.length > 0) {
+                showSection(currentSectionIndex);
+            }
+        });
+    </script>
+
+</body>
+</html>
